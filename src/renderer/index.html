@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X Engine Terminal</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="session-dialog.css">
+  <link rel="stylesheet" href="settings-dialog.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Toolbar -->
+    <div class="top-toolbar">
+      <div class="toolbar-left">
+        <div class="window-controls">
+          <div class="window-dot window-dot-red"></div>
+          <div class="window-dot window-dot-yellow"></div>
+          <div class="window-dot window-dot-green"></div>
+        </div>
+        <div class="app-branding">
+          <img src="logo.png" alt="X Engine" class="app-logo">
+          <span class="app-title">X Engine Terminal</span>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <button class="toolbar-btn" id="toolbarSessionBtn" title="New Session">
+          <span class="toolbar-icon">📡</span>
+        </button>
+        <button class="toolbar-btn" id="toolbarServersBtn" title="Servers">
+          <span class="toolbar-icon">🖥️</span>
+        </button>
+        <button class="toolbar-btn" id="toolbarCloneBtn" title="Clone Repository">
+          <span class="toolbar-icon">📥</span>
+        </button>
+        <button class="toolbar-btn" id="toolbarSettingsBtn" title="Settings">
+          <span class="toolbar-icon">⚙️</span>
+        </button>
+        <button class="toolbar-btn" id="toolbarChatBtn" title="AI Assistant">
+          <span class="toolbar-icon">🤖</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Left Sidebar (Session Manager) -->
+      <div class="session-sidebar" id="sessionSidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Sessions</span>
+          <button class="sidebar-search-btn" id="sidebarSearchBtn" title="Search">🔍</button>
+        </div>
+        <div class="sidebar-content" id="sessionSidebarContent">
+          <!-- Sessions will be populated here -->
+        </div>
+      </div>
+
+      <!-- Resizer Handle -->
+      <div class="resizer-handle" id="sidebarResizer"></div>
+
+      <!-- Main Terminal Area -->
+      <div class="terminal-area">
+        <!-- Tab Bar -->
+        <div class="tab-bar" id="tabBar">
+          <button class="tab-button new-tab" id="newTabBtn" title="New Tab">+</button>
+        </div>
+
+        <!-- Terminal Container with SFTP Browser -->
+        <div class="terminal-container-wrapper">
+          <!-- SFTP Browser Sidebar (initially hidden) -->
+          <div class="sftp-browser" id="sftpBrowser" style="display: none;">
+            <div class="sftp-header">
+              <span class="sftp-title">📁 SFTP</span>
+              <span class="sftp-host" id="sftpHost">-</span>
+            </div>
+            <div class="sftp-path" id="sftpPath" title="">/</div>
+            <div class="sftp-content" id="sftpContent">
+              <!-- File list will be populated here -->
+            </div>
+            <div class="sftp-footer">
+              <span id="sftpItemCount">0 items</span>
+              <span id="sftpSelection">0 B selected</span>
+            </div>
+          </div>
+
+          <!-- Terminal Container -->
+          <div class="terminal-container" id="terminalContainer">
+            <!-- Terminal instances will be created here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Agent Panel (Right Side) -->
+      <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+          <span class="chat-title">AI Assistant</span>
+          <button class="chat-close-btn" id="chatCloseButton" title="Close">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be populated here -->
+        </div>
+        <div class="chat-footer">
+          <button class="btn-copy-terminal" id="copyTerminalContentBtn" title="Copy Terminal Content">📋 Copy Terminal</button>
+          <div class="chat-input-area">
+            <input type="text" id="chatInput" class="chat-input" placeholder="Ask me anything about your terminal...">
+            <button class="chat-send-btn" id="chatSendButton" title="Send">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Command Confirmation Dialog -->
+    <div class="command-confirmation-overlay" id="commandConfirmationDialog" style="display: none;">
+      <div class="command-confirmation-dialog">
+        <div class="confirmation-header">
+          <h3>Confirm Command Execution</h3>
+        </div>
+        <div class="confirmation-body">
+          <p>Are you sure you want to execute this command in the terminal?</p>
+          <div class="confirmation-command">
+            <code id="confirmationCommand"></code>
+          </div>
+          <div class="confirmation-info">
+            <span>Terminal: <strong id="confirmationTerminal"></strong></span>
+          </div>
+        </div>
+        <div class="confirmation-actions">
+          <button class="btn-secondary" id="confirmRejectBtn">Cancel</button>
+          <button class="btn-primary" id="confirmAcceptBtn">Execute</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Dialog -->
+    <div class="modal-overlay" id="updateDialogOverlay" style="display: none;">
+      <div class="modal-dialog" id="updateDialog">
+        <div class="modal-header">
+          <h2>Update Available</h2>
+          <button class="modal-close" id="updateDialogClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="update-info">
+            <p id="updateStatusMessage" style="display: none;"></p>
+            <div class="update-version">
+              <strong>New Version: </strong><span id="updateVersion"></span>
+            </div>
+            <div id="updateReleaseNotes" class="update-release-notes" style="display: none;"></div>
+            
+            <!-- Download Progress -->
+            <div class="update-progress-container" style="display: none;">
+              <div class="update-progress-bar">
+                <div class="update-progress-fill" id="updateProgressBar" style="width: 0%;"></div>
+              </div>
+              <div class="update-progress-text">
+                <span id="updateProgressPercent">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="updateLaterBtn">Later</button>
+          <button class="btn-primary" id="updateDownloadBtn" style="display: none;">Download Update</button>
+          <button class="btn-primary" id="updateInstallBtn" style="display: none;">Install & Restart</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-left">
+        <span>SSH-Browser: <span id="statusSshBrowser">Ready</span></span>
+        <span>X11-server: <span id="statusX11">0.0</span></span>
+        <span>RDP: <span id="statusRdp">OFF</span></span>
+      </div>
+      <div class="status-right">
+        <span id="statusConnection">Disconnected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Dialog Modal -->
+  <div class="modal-overlay" id="settingsDialogOverlay" style="display: none;">
+    <div class="modal-dialog" id="settingsDialog">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="modal-close" id="settingsDialogClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="settingsForm">
+          <div class="settings-section">
+            <h3>Appearance</h3>
+            <div class="form-group">
+              <label for="uiTheme">Theme</label>
+              <select id="uiTheme">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="auto">Auto (System)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>Terminal Appearance</h3>
+            <div class="form-group">
+              <label for="fontSize">Font Size</label>
+              <input type="number" id="fontSize" min="8" max="32" value="14">
+            </div>
+            <div class="form-group">
+              <label for="fontFamily">Font Family</label>
+              <input type="text" id="fontFamily" value="Consolas, &quot;Courier New&quot;, monospace">
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>GitHub Integration</h3>
+            <div class="form-group">
+              <label for="githubToken">GitHub Access Token</label>
+              <input type="password" id="githubToken" placeholder="Enter GitHub personal access token">
+              <div class="token-status-container">
+                <span id="githubTokenStatus" class="token-status token-none">No token stored</span>
+                <button type="button" class="btn-secondary" id="deleteGitHubTokenBtn">Delete Token</button>
+              </div>
+              <small class="form-help">Token will be used automatically for git pull/fetch/clone operations</small>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>Gemini API Integration</h3>
+            <div class="form-group">
+              <label for="geminiToken">Gemini API Token</label>
+              <input type="password" id="geminiToken" placeholder="Enter Google Gemini API key">
+              <div class="token-status-container">
+                <span id="geminiTokenStatus" class="token-status token-none">No token stored</span>
+                <button type="button" class="btn-secondary" id="deleteGeminiTokenBtn">Delete Token</button>
+              </div>
+              <small class="form-help">Token will be used for intelligent link/URL autocomplete in terminal commands</small>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>Updates</h3>
+            <div class="form-group">
+              <button type="button" class="btn-secondary" id="checkForUpdatesBtn" style="width: 100%;">Check for Updates</button>
+              <small class="form-help">The app automatically checks for updates on startup</small>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="settingsDialogCancel">Cancel</button>
+            <button type="submit" class="btn-primary" id="settingsDialogSave">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Dialog Modal -->
+  <div class="modal-overlay" id="sessionDialogOverlay" style="display: none;">
+    <div class="modal-dialog" id="sessionDialog">
+      <div class="modal-header">
+        <h2>New Session</h2>
+        <button class="modal-close" id="sessionDialogClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="sessionForm">
+          <div class="form-group">
+            <label for="sessionName">Session Name</label>
+            <input type="text" id="sessionName" placeholder="My Server" required>
+          </div>
+
+          <div class="form-group">
+            <label for="connectionType">Connection Type</label>
+            <select id="connectionType" required>
+              <option value="local">Local Terminal</option>
+              <option value="ssh">SSH</option>
+              <option value="rdp">RDP (Coming Soon)</option>
+              <option value="telnet">Telnet (Coming Soon)</option>
+            </select>
+          </div>
+
+          <div id="sshFields" class="connection-fields" style="display: none;">
+            <div class="form-group">
+              <label for="host">Host</label>
+              <input type="text" id="host" placeholder="example.com or 192.168.1.1">
+            </div>
+
+            <div class="form-group">
+              <label for="port">Port</label>
+              <input type="number" id="port" placeholder="22" value="22">
+            </div>
+
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" placeholder="user">
+            </div>
+
+            <div class="form-group">
+              <label for="authMethod">Authentication</label>
+              <select id="authMethod">
+                <option value="password">Password</option>
+                <option value="key">SSH Key</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="passwordGroup">
+              <label for="password">Password</label>
+              <input type="password" id="password" placeholder="Enter password">
+            </div>
+
+            <div class="form-group" id="keyPathGroup" style="display: none;">
+              <label for="keyPath">SSH Key Path</label>
+              <input type="text" id="keyPath" placeholder="C:\Users\...\.ssh\id_rsa">
+              <button type="button" class="btn-secondary" id="browseKeyBtn">Browse...</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="saveSession"> Save this session
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="sessionDialogCancel">Cancel</button>
+            <button type="submit" class="btn-primary" id="sessionDialogConnect">Connect</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <link rel="stylesheet" href="xterm.css" />
+  <script src="xterm.js"></script>
+  <script src="addon-fit.js"></script>
+  <script>
+    // Ensure FitAddon is available on window after addon-fit.js loads
+    // The addon sets self.FitAddon, so we copy it to window
+    function ensureFitAddon() {
+      if (typeof self !== 'undefined' && self.FitAddon && !window.FitAddon) {
+        window.FitAddon = self.FitAddon;
+        console.log('Copied FitAddon from self to window');
+      }
+      // The FitAddon is wrapped in an ES module object, so window.FitAddon.FitAddon is the actual class
+      if (window.FitAddon && window.FitAddon.FitAddon) {
+        console.log('FitAddon class found at window.FitAddon.FitAddon');
+      }
+    }
+    
+    // Check immediately and also after scripts load
+    ensureFitAddon();
+    window.addEventListener('load', () => {
+      ensureFitAddon();
+      // Load renderer as a module (it will dynamically import session-dialog when needed)
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'renderer.js';
+      document.body.appendChild(script);
+    });
+  </script>
+</body>
+</html>
+

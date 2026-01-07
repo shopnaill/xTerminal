@@ -1,0 +1,87 @@
+{
+  "name": "x-engine-terminal",
+  "version": "1.0.0",
+  "description": "X Engine Terminal - A powerful terminal emulator with SSH, SFTP, and session management",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "build": "npx tsc && npx tsc -p tsconfig.renderer.json && npm run copy-assets",
+    "copy-assets": "node -e \"const fs=require('fs');const path=require('path');const mkdirp=(p)=>{if(!fs.existsSync(p))fs.mkdirSync(p,{recursive:true})};mkdirp('dist/renderer');fs.copyFileSync('src/renderer/index.html','dist/renderer/index.html');fs.copyFileSync('src/renderer/styles.css','dist/renderer/styles.css');fs.copyFileSync('src/renderer/session-dialog.css','dist/renderer/session-dialog.css');fs.copyFileSync('src/renderer/settings-dialog.css','dist/renderer/settings-dialog.css');fs.copyFileSync('logo.png','dist/renderer/logo.png');fs.copyFileSync('node_modules/@xterm/xterm/lib/xterm.js','dist/renderer/xterm.js');fs.copyFileSync('node_modules/@xterm/addon-fit/lib/addon-fit.js','dist/renderer/addon-fit.js');fs.copyFileSync('node_modules/@xterm/xterm/css/xterm.css','dist/renderer/xterm.css');\"",
+    "start": "npm run build && electron .",
+    "dev": "npx tsc && electron .",
+    "package": "electron-builder",
+    "package:win": "electron-builder --win --config.npmRebuild=false",
+    "install:no-build": "npm install --ignore-scripts",
+    "rebuild:pty": "npm rebuild node-pty",
+    "postinstall": "electron-rebuild -f -w node-pty keytar || echo 'Rebuild failed - run rebuild:electron manually'",
+    "rebuild:electron": "electron-rebuild -f -w node-pty keytar",
+    "rebuild:electron:verbose": "set DEBUG=electron-rebuild && electron-rebuild -f -w node-pty keytar"
+  },
+  "keywords": [
+    "terminal",
+    "electron",
+    "windows"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/ssh2": "^1.15.5",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.9.1",
+    "electron-rebuild": "^3.2.9",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.7",
+    "keytar": "^7.9.0",
+    "node-pty": "^1.0.0",
+    "ssh2": "^1.15.0"
+  },
+  "build": {
+    "appId": "com.xengine.terminal",
+    "productName": "X Engine Terminal",
+    "publish": {
+      "provider": "github",
+      "owner": "shopnaill",
+      "repo": "xTerminal.git"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "X Engine Terminal"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json",
+      "node_modules/node-pty/**/*",
+      "node_modules/keytar/**/*"
+    ],
+    "extraFiles": [
+      {
+        "from": "logo.png",
+        "to": "logo.png"
+      }
+    ],
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false
+  }
+}
