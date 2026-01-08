@@ -85,8 +85,9 @@ export class SettingsDialog {
 
   private async checkForUpdates(): Promise<void> {
     try {
-      this.checkForUpdatesBtn.textContent = 'Checking...';
-      this.checkForUpdatesBtn.disabled = true;
+      const btn = this.checkForUpdatesBtn as HTMLButtonElement;
+      btn.textContent = 'Checking...';
+      btn.disabled = true;
 
       const result = await window.electronAPI.update.checkForUpdates();
       
@@ -96,14 +97,26 @@ export class SettingsDialog {
       } else if (result.success && !result.updateAvailable) {
         alert('You are using the latest version.');
       } else {
-        alert(`Failed to check for updates: ${result.error || 'Unknown error'}`);
+        // Provide a more user-friendly error message
+        const errorMsg = result.error || 'Unknown error';
+        if (errorMsg.includes('packaged application') || errorMsg.includes('development mode')) {
+          alert('Update checking is only available in the installed application.\n\nIn development mode, updates cannot be checked. Build and install the application to enable auto-updates.');
+        } else {
+          alert(`Failed to check for updates: ${errorMsg}`);
+        }
       }
     } catch (error) {
       console.error('Error checking for updates:', error);
-      alert(`Error checking for updates: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMsg.includes('packaged application') || errorMsg.includes('development mode')) {
+        alert('Update checking is only available in the installed application.\n\nIn development mode, updates cannot be checked. Build and install the application to enable auto-updates.');
+      } else {
+        alert(`Error checking for updates: ${errorMsg}`);
+      }
     } finally {
-      this.checkForUpdatesBtn.textContent = 'Check for Updates';
-      this.checkForUpdatesBtn.disabled = false;
+      const btn = this.checkForUpdatesBtn as HTMLButtonElement;
+      btn.textContent = 'Check for Updates';
+      btn.disabled = false;
     }
   }
 

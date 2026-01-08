@@ -171,15 +171,16 @@ export class UpdateDialog {
     // Show download button again on error
     if (this.downloadButton) {
       this.downloadButton.style.display = 'block';
-      this.downloadButton.textContent = 'Retry Download';
+      (this.downloadButton as HTMLButtonElement).textContent = 'Retry Download';
     }
   }
 
   private async handleDownload(): Promise<void> {
     try {
       if (this.downloadButton) {
-        this.downloadButton.disabled = true;
-        this.downloadButton.textContent = 'Downloading...';
+        const btn = this.downloadButton as HTMLButtonElement;
+        btn.disabled = true;
+        btn.textContent = 'Downloading...';
       }
 
       const result = await window.electronAPI.update.downloadUpdate();
@@ -187,16 +188,18 @@ export class UpdateDialog {
       if (!result.success) {
         this.showError(result.error || 'Failed to download update');
         if (this.downloadButton) {
-          this.downloadButton.disabled = false;
-          this.downloadButton.textContent = 'Retry Download';
+          const btn = this.downloadButton as HTMLButtonElement;
+          btn.disabled = false;
+          btn.textContent = 'Retry Download';
         }
       }
       // Progress will be updated via event listeners
     } catch (error) {
       this.showError(error instanceof Error ? error.message : 'Unknown error');
       if (this.downloadButton) {
-        this.downloadButton.disabled = false;
-        this.downloadButton.textContent = 'Download Update';
+        const btn = this.downloadButton as HTMLButtonElement;
+        btn.disabled = false;
+        btn.textContent = 'Download Update';
       }
     }
   }
@@ -204,8 +207,9 @@ export class UpdateDialog {
   private async handleInstall(): Promise<void> {
     try {
       if (this.installButton) {
-        this.installButton.disabled = true;
-        this.installButton.textContent = 'Installing...';
+        const btn = this.installButton as HTMLButtonElement;
+        btn.disabled = true;
+        btn.textContent = 'Installing...';
       }
 
       const result = await window.electronAPI.update.installUpdate();
@@ -213,8 +217,9 @@ export class UpdateDialog {
       if (!result.success) {
         this.showError(result.error || 'Failed to install update');
         if (this.installButton) {
-          this.installButton.disabled = false;
-          this.installButton.textContent = 'Install & Restart';
+          const btn = this.installButton as HTMLButtonElement;
+          btn.disabled = false;
+          btn.textContent = 'Install & Restart';
         }
       } else {
         // App will restart, so we don't need to do anything
@@ -225,8 +230,9 @@ export class UpdateDialog {
     } catch (error) {
       this.showError(error instanceof Error ? error.message : 'Unknown error');
       if (this.installButton) {
-        this.installButton.disabled = false;
-        this.installButton.textContent = 'Install & Restart';
+        const btn = this.installButton as HTMLButtonElement;
+        btn.disabled = false;
+        btn.textContent = 'Install & Restart';
       }
     }
   }

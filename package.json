@@ -44,9 +44,8 @@
     "appId": "com.xengine.terminal",
     "productName": "X Engine Terminal",
     "publish": {
-      "provider": "github",
-      "owner": "shopnaill",
-      "repo": "xTerminal.git"
+      "provider": "generic",
+      "url": "https://xengine.gym-engine.com/updates"
     },
     "directories": {
       "output": "release"

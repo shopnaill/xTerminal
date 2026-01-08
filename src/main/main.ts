@@ -17,7 +17,7 @@ const sftpManager = new SFTPManager();
 const settingsManager = new SettingsManager();
 const gitAuthManager = new GitAuthManager(settingsManager);
 const geminiApiService = new GeminiApiService();
-const updateService = new UpdateService();
+const updateService = new UpdateService(settingsManager);
 
 // Initialize Gemini API service with token if available
 async function initializeGeminiService(): Promise<void> {
@@ -73,11 +73,16 @@ app.whenReady().then(() => {
     updateService.setMainWindow(mainWindow);
     
     // Check for updates after a delay (let app initialize first)
-    setTimeout(() => {
-      updateService.checkForUpdates(false).catch(err => {
-        console.error('Auto-update check failed:', err);
-      });
-    }, 5000); // Wait 5 seconds after app startup
+    // Only check if app is packaged (not in development)
+    if (app.isPackaged) {
+      setTimeout(() => {
+        updateService.checkForUpdates(false).catch(err => {
+          console.error('Auto-update check failed:', err);
+        });
+      }, 5000); // Wait 5 seconds after app startup
+    } else {
+      console.log('Skipping auto-update check in development mode');
+    }
   }
 
   app.on('activate', () => {
