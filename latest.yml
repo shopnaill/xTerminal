@@ -1,0 +1,8 @@
+version: 1.0.0
+files:
+  - url: X-Engine-Terminal-Setup-1.0.0.exe
+    sha512: ZvCC0A0hnj53LhtTFcprs2QIUBUdZf73Q74pn/wsmjZjNC3rLaPQlLiiG/2jvmy8NF5GCF+jH2D2eNfYgy56pQ==
+    size: 86513489
+path: X-Engine-Terminal-Setup-1.0.0.exe
+sha512: ZvCC0A0hnj53LhtTFcprs2QIUBUdZf73Q74pn/wsmjZjNC3rLaPQlLiiG/2jvmy8NF5GCF+jH2D2eNfYgy56pQ==
+releaseDate: '2026-01-08T00:20:23.541Z'
